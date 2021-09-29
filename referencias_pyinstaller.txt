@@ -1,0 +1,7 @@
+https://youtu.be/UZX5kH72Yx4
+
+https://youtu.be/RMkPGjGhzxg
+
+$ pip install pyinstaller
+
+$ pyinstaller --onefile -w main.py
