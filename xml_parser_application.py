@@ -1,15 +1,16 @@
+import os
+import zipfile
+
 from tkinter import *
 from tkinter import messagebox
 from tkinter import filedialog
 from bs4 import BeautifulSoup
-import os
-import zipfile
 
 window = Tk()
-window.title('CVAT - Resultado do Lote | Versão: 1.1')
+window.title('CVAT - Resultado do Lote | Versão: 1.2')
 window.configure(background='#f0f2f5')
-window.geometry('700x600')
-window.resizable(False, False)
+window.geometry('700x700')
+window.resizable(True, True)
 
 
 def extract_zip(zip_path):
@@ -89,14 +90,29 @@ def show_text(dictionary, label_dict):
     label_dict : dict
         Dictionary containing each kind of label that exist in XML file.
     """
+    raw_label = 'Dado "raw":\n'
+    text_output.insert(END, raw_label)
+
+    keys_in_line = 'nome_do_lote;id_do_lote;id_da_anotação'
+    for k, v in label_dict.items():
+        keys_in_line += f';{k}'
+    text_output.insert(END, keys_in_line)
+
+    values_in_line = f"\n{dictionary['batch_name']};{dictionary['batch_id']};{dictionary['job_id']}"
+    for k, v in label_dict.items():
+        values_in_line += f';{v}'
+    text_output.insert(END, values_in_line)
+
     text_top = f'''
+\n---
+>>> Nome do Lote: {dictionary['batch_name']}
 >>> ID do Lote: {dictionary['batch_id']}
->>> Nome do Lote: {dictionary['batch_name']}\n
+>>> ID da Anotação: {dictionary['job_id']}\n
 '''
     text_output.insert(END, text_top)
 
     for k, v in label_dict.items():
-        text_body = f'{k.title()}: {v} anotações.\n'
+        text_body = f'{k.title()}: {v}.\n'
         text_output.insert(END, text_body)
 
     text_bottom = f'''
@@ -135,6 +151,8 @@ def read_file():
     bs_data = BeautifulSoup(data, 'xml')
     batch_id = bs_data.find('id').get_text()
     batch_name = bs_data.find('name').get_text()
+    segment = bs_data.find('segment')
+    job_id = segment.find('id').get_text()
     all_image = bs_data.find_all('image')
     all_tag = bs_data.find_all('tag')
     find_labels = bs_data.find('labels')
@@ -167,8 +185,9 @@ def read_file():
     empty_list.sort()
 
     dict_content = {
-        'batch_id': batch_id,
         'batch_name': batch_name,
+        'batch_id': batch_id,
+        'job_id': job_id,
         'repeated': len(repeated_list),
         'repeated_list': repeated_list,
         'empty': len(empty_list),
